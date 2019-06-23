@@ -26,6 +26,11 @@ func (p *Point) Component(axis Axis) float64 {
 	return 0.0
 }
 
+func (p *Point) Add(point Point) {
+	p.X = p.X + point.X
+	p.Y = p.Y + point.Y
+}
+
 type Direction bool
 
 const (

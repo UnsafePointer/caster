@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/Ruenzuo/caster/geometry"
 	"github.com/Ruenzuo/caster/world"
@@ -12,9 +13,22 @@ import (
 var (
 	renderer *world.Renderer
 	screen   *world.Screen
+	camera   *world.Camera
 )
 
 func update(image *ebiten.Image) error {
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+		camera.Angle -= 0.05
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyRight) {
+		camera.Angle += 0.05
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+		camera.Position.Add(geometry.Point{X: 0.02 * math.Cos(float64(camera.Angle)), Y: 0.02 * math.Sin(float64(camera.Angle))})
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyDown) {
+		camera.Position.Add(geometry.Point{X: -0.02 * math.Cos(float64(camera.Angle)), Y: -0.02 * math.Sin(float64(camera.Angle))})
+	}
 	for i := int(0); i < world.Width; i++ {
 		renderer.Render(i, screen)
 	}
@@ -35,7 +49,7 @@ func update(image *ebiten.Image) error {
 
 func main() {
 	screen = &world.Screen{}
-	camera := &world.Camera{
+	camera = &world.Camera{
 		Position: geometry.Point{
 			X: 1.5,
 			Y: 1.5,
