@@ -6,5 +6,5 @@ const (
 )
 
 type Screen struct {
-	data [Width][Heigth][3]byte
+	Data [Width][Heigth][3]byte
 }

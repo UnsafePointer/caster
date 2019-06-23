@@ -1,7 +1,6 @@
 package world
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/Ruenzuo/caster/geometry"
@@ -18,10 +17,28 @@ type Renderer struct {
 }
 
 func (r *Renderer) Render(column int, screen *Screen) {
-	r.castRay(column, Width)
+	normalizedHeigth := r.castRay(column, Width)
+	limitedHeigth := math.Min(normalizedHeigth, 1.0)
+	columnHeigh := Heigth * limitedHeigth
+	padding := (Heigth - columnHeigh) / 2
+	for i := int(0); i < int(padding); i++ {
+		screen.Data[column][i][0] = 0
+		screen.Data[column][i][1] = 0
+		screen.Data[column][i][2] = 0
+	}
+	for i := int(padding); i < int(padding+columnHeigh); i++ {
+		screen.Data[column][i][0] = 255
+		screen.Data[column][i][1] = 255
+		screen.Data[column][i][2] = 255
+	}
+	for i := int(padding + columnHeigh); i < Heigth; i++ {
+		screen.Data[column][i][0] = 0
+		screen.Data[column][i][1] = 0
+		screen.Data[column][i][2] = 0
+	}
 }
 
-func (r *Renderer) castRay(column int, width int) {
+func (r *Renderer) castRay(column int, width int) float64 {
 	relativeAngle := r.rayAngle(column, width)
 	absoluteAngle := relativeAngle + r.Camera.Angle
 	ray := geometry.NewRay(r.Camera.Position, absoluteAngle)
@@ -30,10 +47,13 @@ func (r *Renderer) castRay(column int, width int) {
 		ray = ray.Grow()
 
 		if r.WorldMap.HitTest(ray.End, ray.Angle) {
-			length := ray.Length * math.Cos(float64(relativeAngle))
-			println(fmt.Sprintf("Wall at column: %d with length: %f", column, length))
+			projectedDistance := ray.Length * math.Cos(float64(relativeAngle))
+			normalizedHeigth := 1.0 / projectedDistance
+			return normalizedHeigth
 		}
 	}
+
+	return 0.0
 }
 
 func (r *Renderer) rayAngle(column int, width int) geometry.Angle {

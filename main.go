@@ -1,12 +1,40 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/Ruenzuo/caster/geometry"
 	"github.com/Ruenzuo/caster/world"
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
+var (
+	renderer *world.Renderer
+	screen   *world.Screen
+)
+
+func update(image *ebiten.Image) error {
+	for i := int(0); i < world.Width; i++ {
+		renderer.Render(i, screen)
+	}
+	p := make([]byte, world.Width*world.Heigth*4)
+	for y := 0; y < world.Heigth; y++ {
+		for x := 0; x < world.Width; x++ {
+			position := y*world.Width + x
+			p[(position*4 + 0)] = screen.Data[x][y][0]
+			p[(position*4 + 1)] = screen.Data[x][y][1]
+			p[(position*4 + 2)] = screen.Data[x][y][2]
+			p[(position*4 + 3)] = 255
+		}
+	}
+	image.ReplacePixels(p)
+	ebitenutil.DebugPrint(image, fmt.Sprintf("FPS: %f", ebiten.CurrentFPS()))
+	return nil
+}
+
 func main() {
-	screen := &world.Screen{}
+	screen = &world.Screen{}
 	camera := &world.Camera{
 		Position: geometry.Point{
 			X: 1.5,
@@ -14,11 +42,11 @@ func main() {
 		},
 	}
 	worldMap := world.NewMap()
-	renderer := &world.Renderer{
+	renderer = &world.Renderer{
 		Camera:   camera,
 		WorldMap: worldMap,
 	}
-	for i := int(0); i < world.Width; i++ {
-		renderer.Render(i, screen)
+	if err := ebiten.Run(update, world.Width, world.Heigth, 2, "caster"); err != nil {
+		panic(err)
 	}
 }
