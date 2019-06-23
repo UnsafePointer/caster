@@ -1,6 +1,7 @@
 package world
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/Ruenzuo/caster/geometry"
@@ -12,7 +13,8 @@ const (
 )
 
 type Renderer struct {
-	camera *Camera
+	Camera   *Camera
+	WorldMap *Map
 }
 
 func (r *Renderer) Render(column int, screen *Screen) {
@@ -21,8 +23,17 @@ func (r *Renderer) Render(column int, screen *Screen) {
 
 func (r *Renderer) castRay(column int, width int) {
 	relativeAngle := r.rayAngle(column, width)
-	absoluteAngle := relativeAngle + r.camera.Direction
-	geometry.NewRay(r.camera.Position, absoluteAngle)
+	absoluteAngle := relativeAngle + r.Camera.Angle
+	ray := geometry.NewRay(r.Camera.Position, absoluteAngle)
+
+	for ray.Length <= r.WorldMap.MaxDistance {
+		ray = ray.Grow()
+
+		if r.WorldMap.HitTest(ray.End, ray.Angle) {
+			length := ray.Length * math.Cos(float64(relativeAngle))
+			println(fmt.Sprintf("Wall at column: %d with length: %f", column, length))
+		}
+	}
 }
 
 func (r *Renderer) rayAngle(column int, width int) geometry.Angle {
