@@ -7,8 +7,9 @@ type Angle float64
 type Axis int
 
 const (
-	X Axis = iota
-	Y Axis = iota
+	X    Axis = iota
+	Y    Axis = iota
+	None Axis = iota
 )
 
 type Point struct {

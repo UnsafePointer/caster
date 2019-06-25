@@ -3,10 +3,11 @@ package geometry
 import "math"
 
 type Ray struct {
-	Start  Point
-	End    Point
-	Angle  Angle
-	Length float64
+	Start       Point
+	End         Point
+	Angle       Angle
+	Length      float64
+	GrowingAxis Axis
 }
 
 func NewRay(start Point, angle Angle) *Ray {
@@ -19,10 +20,11 @@ func NewRay2(start Point, end Point, angle Angle) *Ray {
 	deltaY := end.Y - start.Y
 	length := math.Sqrt(math.Pow(deltaX, 2) + math.Pow(deltaY, 2))
 	r := &Ray{
-		Start:  start,
-		End:    end,
-		Angle:  angle,
-		Length: length,
+		Start:       start,
+		End:         end,
+		Angle:       angle,
+		Length:      length,
+		GrowingAxis: None,
 	}
 	return r
 }
@@ -40,13 +42,17 @@ func (r *Ray) Grow() *Ray {
 func (r *Ray) growToNextXLine() *Ray {
 	deltaX := r.distanceToNextGridLine(X)
 	deltaY := math.Tan(float64(r.Angle)) * deltaX
-	return r.growWithDelta(deltaX, deltaY)
+	r2 := r.growWithDelta(deltaX, deltaY)
+	r2.GrowingAxis = X
+	return r2
 }
 
 func (r *Ray) growToNextYLine() *Ray {
 	deltaY := r.distanceToNextGridLine(Y)
 	deltaX := deltaY / math.Tan(float64(r.Angle))
-	return r.growWithDelta(deltaX, deltaY)
+	r2 := r.growWithDelta(deltaX, deltaY)
+	r2.GrowingAxis = Y
+	return r2
 }
 
 func (r *Ray) distanceToNextGridLine(axis Axis) float64 {
