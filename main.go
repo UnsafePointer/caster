@@ -67,7 +67,7 @@ func main() {
 		WorldMap:    worldMap,
 		WallTexture: wallTexture,
 	}
-	if err := ebiten.Run(update, world.Width, world.Heigth, 2, "caster"); err != nil {
+	if err := ebiten.Run(update, world.Width, world.Heigth, world.Scale, "caster"); err != nil {
 		panic(err)
 	}
 }

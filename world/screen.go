@@ -1,8 +1,9 @@
 package world
 
 const (
-	Width  = 640
-	Heigth = 480
+	Width  = 1280
+	Heigth = 720
+	Scale  = 1
 )
 
 type Screen struct {
