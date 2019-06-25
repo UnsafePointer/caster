@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/Ruenzuo/caster/geometry"
+	"github.com/Ruenzuo/caster/graphics"
 )
 
 const (
@@ -12,8 +13,9 @@ const (
 )
 
 type Renderer struct {
-	Camera   *Camera
-	WorldMap *Map
+	Camera      *Camera
+	WorldMap    *Map
+	WallTexture *graphics.Texture
 }
 
 func (r *Renderer) Render(column int, screen *Screen) {
@@ -23,16 +25,22 @@ func (r *Renderer) Render(column int, screen *Screen) {
 	}
 	limitedHeigth := math.Min(normalizedHeigth, 1.0)
 	columnHeigh := Heigth * limitedHeigth
+	textureScale := (r.WallTexture.Height << 16) / int(columnHeigh)
 	padding := (Heigth - columnHeigh) / 2
 	for i := int(0); i < int(padding); i++ {
 		screen.Data[column][i][0] = 0
 		screen.Data[column][i][1] = 255
 		screen.Data[column][i][2] = 255
 	}
+	indexFraction := 0
+	textureIndex := 0
 	for i := int(padding); i < int(padding+columnHeigh); i++ {
-		screen.Data[column][i][0] = byte(255 / textureOffset)
-		screen.Data[column][i][1] = byte(255 / textureOffset)
-		screen.Data[column][i][2] = byte(255 / textureOffset)
+		textureIndex = (indexFraction >> 16)
+		indexFraction += textureScale
+		p := r.WallTexture.GetPixelAt(textureIndex, textureOffset)
+		screen.Data[column][i][0] = p.R
+		screen.Data[column][i][1] = p.G
+		screen.Data[column][i][2] = p.B
 	}
 	for i := int(padding + columnHeigh); i < Heigth; i++ {
 		screen.Data[column][i][0] = 0
@@ -41,7 +49,7 @@ func (r *Renderer) Render(column int, screen *Screen) {
 	}
 }
 
-func (r *Renderer) castRay(column int, width int) (float64, uint) {
+func (r *Renderer) castRay(column int, width int) (float64, int) {
 	relativeAngle := r.rayAngle(column, width)
 	absoluteAngle := relativeAngle + r.Camera.Angle
 	ray := geometry.NewRay(r.Camera.Position, absoluteAngle)
@@ -50,11 +58,11 @@ func (r *Renderer) castRay(column int, width int) (float64, uint) {
 		ray = ray.Grow()
 
 		if r.WorldMap.HitTest(ray.End, ray.Angle) {
-			var offset uint
+			var offset int
 			if ray.GrowingAxis == geometry.X {
-				offset = uint(ray.End.Y*24) % 24
+				offset = int(ray.End.Y*float64(r.WallTexture.Height)) % r.WallTexture.Height
 			} else if ray.GrowingAxis == geometry.Y {
-				offset = uint(ray.End.X*24) % 24
+				offset = int(ray.End.X*float64(r.WallTexture.Height)) % r.WallTexture.Height
 			}
 			projectedDistance := ray.Length * math.Cos(float64(relativeAngle))
 			normalizedHeigth := 1.0 / projectedDistance

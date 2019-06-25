@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"image"
+	"image/png"
 	"math"
 
 	"github.com/Ruenzuo/caster/geometry"
+	"github.com/Ruenzuo/caster/graphics"
 	"github.com/Ruenzuo/caster/world"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -48,6 +51,8 @@ func update(image *ebiten.Image) error {
 }
 
 func main() {
+	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
+
 	screen = &world.Screen{}
 	camera = &world.Camera{
 		Position: geometry.Point{
@@ -56,9 +61,11 @@ func main() {
 		},
 	}
 	worldMap := world.NewMap()
+	wallTexture := graphics.NewTexture("texture.png")
 	renderer = &world.Renderer{
-		Camera:   camera,
-		WorldMap: worldMap,
+		Camera:      camera,
+		WorldMap:    worldMap,
+		WallTexture: wallTexture,
 	}
 	if err := ebiten.Run(update, world.Width, world.Heigth, 2, "caster"); err != nil {
 		panic(err)
